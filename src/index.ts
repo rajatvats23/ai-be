@@ -29,6 +29,8 @@ const startServer = async () => {
     
     httpServer.listen(PORT, () => {
       console.log(`🚀 Server on port ${PORT}`);
+      console.log(`📡 Socket.io initialized`);  // Add this line
+      console.log(`🌐 CORS: ${process.env.FRONTEND_URL}`);
     });
   } catch (error) {
     console.error('❌ Startup failed:', error);
