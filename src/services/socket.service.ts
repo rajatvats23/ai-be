@@ -12,9 +12,9 @@ export const emitStoryComplete = (
       requestId,
       chapters
     });
-    console.log(`📤 Emitted story-complete event to user ${userId}`);
+    console.log(`📤 Story complete event → user ${userId}`);
   } catch (error) {
-    console.error('❌ Failed to emit socket event:', error);
+    console.error('❌ Socket emit failed:', error);
   }
 };
 
@@ -29,8 +29,8 @@ export const emitStoryFailed = (
       requestId,
       error
     });
-    console.log(`📤 Emitted story-failed event to user ${userId}`);
+    console.log(`📤 Story failed event → user ${userId}`);
   } catch (err) {
-    console.error('❌ Failed to emit socket event:', err);
+    console.error('❌ Socket emit failed:', err);
   }
 };

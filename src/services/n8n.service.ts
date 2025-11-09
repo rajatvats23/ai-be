@@ -15,7 +15,7 @@ export const callN8nWorkflow = async (
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 300000 // 5 minutes
+        timeout: 300000
       }
     );
 

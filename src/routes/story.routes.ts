@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createStory, getStory, getUserStories } from '../controllers/story.controller';
-import { upload } from '../middlewares/upload.middleware';
+import { upload } from '../middleware/upload.middleware';
 
 const router = Router();
 

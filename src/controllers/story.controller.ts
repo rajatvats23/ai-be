@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import Story from '../story.model';
-import { uploadCharacterImages } from '../s3';
-import { callN8nWorkflow } from '../n8n.service';
-import { emitStoryComplete, emitStoryFailed } from '../socket.service';
+import Story from '../models/Story.model';
+import { uploadCharacterImages } from '../services/s3.service';
+import { callN8nWorkflow } from '../services/n8n.service';
+import { emitStoryComplete, emitStoryFailed } from '../services/socket.service';
 
 export const createStory = async (req: Request, res: Response) => {
   try {
@@ -18,9 +18,8 @@ export const createStory = async (req: Request, res: Response) => {
     }
 
     const requestId = uuidv4();
-    console.log(`📝 Creating story for user ${userId}, requestId: ${requestId}`);
+    console.log(`📝 Creating story: ${requestId}`);
 
-    // Upload images to S3
     const mainCharacterImageUrls = await uploadCharacterImages(
       files.mainCharacterImages || [],
       requestId,
@@ -33,9 +32,8 @@ export const createStory = async (req: Request, res: Response) => {
       'storyteller'
     );
 
-    console.log(`✅ Uploaded ${mainCharacterImageUrls.length + storytellerImageUrls.length} images to S3`);
+    console.log(`✅ Uploaded ${mainCharacterImageUrls.length + storytellerImageUrls.length} images`);
 
-    // Create story record
     const story = new Story({
       userId,
       requestId,
@@ -48,7 +46,6 @@ export const createStory = async (req: Request, res: Response) => {
     });
     await story.save();
 
-    // Send immediate response
     res.json({
       success: true,
       requestId,
@@ -56,7 +53,6 @@ export const createStory = async (req: Request, res: Response) => {
       status: 'processing'
     });
 
-    // Call n8n workflow async (don't await)
     callN8nWorkflow({
       requestId,
       ...JSON.parse(questionnaireData),
@@ -68,19 +64,15 @@ export const createStory = async (req: Request, res: Response) => {
         story.chapters = n8nResponse.chapters;
         story.completedAt = new Date();
         await story.save();
-
         emitStoryComplete(userId, requestId, n8nResponse.chapters);
       })
       .catch(async (error) => {
-        console.error('❌ n8n workflow failed:', error);
         story.status = 'failed';
         await story.save();
-
         emitStoryFailed(userId, requestId, error.message);
       });
 
   } catch (error: any) {
-    console.error('❌ Story creation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create story',
@@ -92,7 +84,6 @@ export const createStory = async (req: Request, res: Response) => {
 export const getStory = async (req: Request, res: Response) => {
   try {
     const { requestId } = req.params;
-    
     const story = await Story.findOne({ requestId });
     
     if (!story) {
@@ -113,7 +104,6 @@ export const getStory = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('❌ Get story error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch story',
@@ -125,17 +115,12 @@ export const getStory = async (req: Request, res: Response) => {
 export const getUserStories = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    
     const stories = await Story.find({ userId })
       .sort({ createdAt: -1 })
       .select('requestId status createdAt completedAt');
 
-    res.json({
-      success: true,
-      stories
-    });
+    res.json({ success: true, stories });
   } catch (error: any) {
-    console.error('❌ Get user stories error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch stories',

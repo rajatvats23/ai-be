@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { QuestionnaireData, Chapter } from './types';
+import { QuestionnaireData, Chapter } from '../types';
 
 export interface IStory extends Document {
   userId: mongoose.Types.ObjectId;

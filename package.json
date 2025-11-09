@@ -1,23 +1,31 @@
 {
   "name": "storybook-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend for storybook generation",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
-    "axios": "^1.13.2",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "socket.io": "^4.6.0",
+    "aws-sdk": "^2.1524.0",
+    "multer": "^1.4.5-lts.1",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "mongoose": "^8.19.3",
-    "multer": "^2.0.2",
-    "socket.io": "^4.8.1",
-    "uuid": "^13.0.0"
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.5",
+    "@types/multer": "^1.4.11",
+    "@types/cors": "^2.8.17",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3",
+    "ts-node-dev": "^2.0.0"
   }
 }

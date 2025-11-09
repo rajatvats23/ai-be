@@ -32,14 +32,3 @@ export interface N8nResponse {
   status: 'completed' | 'failed';
   chapters: Chapter[];
 }
-
-export interface StoryRequest {
-  userId: string;
-  requestId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  questionnaireData: QuestionnaireData;
-  chapters?: Chapter[];
-  createdAt: Date;
-  updatedAt: Date;
-  completedAt?: Date;
-}
