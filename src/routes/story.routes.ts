@@ -8,7 +8,7 @@ const router = Router();
  * @swagger
  * /api/story/create:
  *   post:
- *     summary: Create a new story
+ *     summary: Create a new personalized storybook
  *     tags: [Story]
  *     requestBody:
  *       required: true
@@ -24,23 +24,44 @@ const router = Router();
  *             properties:
  *               userId:
  *                 type: string
+ *                 description: MongoDB User ID
  *                 example: "507f1f77bcf86cd799439011"
  *               questionnaireData:
  *                 type: string
- *                 description: JSON stringified questionnaire data
+ *                 description: |
+ *                   JSON stringified object with the following structure:
+ *                   {
+ *                     "storyAbout": "Who the story is about",
+ *                     "name": "Character's name",
+ *                     "age": "Character's age",
+ *                     "gender": "male/female/other",
+ *                     "relationship": "daughter/son/friend etc",
+ *                     "nickname": "Optional nickname",
+ *                     "characterDescription": "Physical and personality traits",
+ *                     "storyteller": "Who is narrating",
+ *                     "storytellerNames": "Storyteller's name",
+ *                     "storytellerRelationship": "father/mother/friend etc",
+ *                     "backgroundInfo": "Optional background context",
+ *                     "hobbies": "Optional hobbies/interests",
+ *                     "specialQualities": "Optional special traits",
+ *                     "admiration": "Optional what you admire",
+ *                     "feelings": "Optional feelings to express",
+ *                     "wishes": "Optional wishes for them",
+ *                     "specialStory": "Optional specific story to include",
+ *                     "additionalInfo": "Optional extra details"
+ *                   }
+ *                 example: '{"name":"Emma","age":"3","gender":"female","relationship":"daughter"}'
  *               mainCharacterImages:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
+ *                 type: string
+ *                 format: binary
+ *                 description: Single image of main character (max 10MB, jpg/png)
  *               storytellerImages:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
+ *                 type: string
+ *                 format: binary
+ *                 description: Single image of storyteller (max 10MB, jpg/png)
  *     responses:
  *       200:
- *         description: Story generation started
+ *         description: Story generation started successfully
  *         content:
  *           application/json:
  *             schema:
@@ -50,16 +71,22 @@ const router = Router();
  *                   type: boolean
  *                 requestId:
  *                   type: string
+ *                   description: Unique ID to track story generation
  *                 message:
  *                   type: string
  *                 status:
  *                   type: string
+ *                   enum: [processing]
+ *       400:
+ *         description: Missing required fields
+ *       500:
+ *         description: Server error
  */
 router.post(
   '/create',
   upload.fields([
-    { name: 'mainCharacterImages', maxCount: 10 },
-    { name: 'storytellerImages', maxCount: 10 }
+    { name: 'mainCharacterImages', maxCount: 1 },  // Changed to 1
+    { name: 'storytellerImages', maxCount: 1 }     // Changed to 1
   ]),
   createStory
 );
