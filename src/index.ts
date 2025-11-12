@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/database';
 import { initSocket } from './config/socket';
 import storyRoutes from './routes/story.routes';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
 
 dotenv.config();
 
@@ -15,6 +17,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: process.env.FRONTEND_URL }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use('/api/story', storyRoutes);
 
 app.use('/api/story', storyRoutes);
 
