@@ -12,6 +12,7 @@ const socket_1 = require("./config/socket");
 const story_routes_1 = __importDefault(require("./routes/story.routes"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./config/swagger");
+const health_routes_1 = __importDefault(require("./routes/health.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const httpServer = (0, http_1.createServer)(app);
@@ -20,6 +21,8 @@ app.use((0, cors_1.default)({ origin: process.env.FRONTEND_URL }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));
+app.use('/api/health', health_routes_1.default);
+app.use('/api/story', story_routes_1.default);
 app.use('/api/story', story_routes_1.default);
 app.use('/api/story', story_routes_1.default);
 app.get('/health', (req, res) => {

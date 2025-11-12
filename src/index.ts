@@ -7,6 +7,7 @@ import { initSocket } from './config/socket';
 import storyRoutes from './routes/story.routes';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
+import healthRoutes from './routes/health.routes';
 
 dotenv.config();
 
@@ -18,6 +19,9 @@ app.use(cors({ origin: process.env.FRONTEND_URL }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use('/api/health', healthRoutes);
+app.use('/api/story', storyRoutes);
 
 app.use('/api/story', storyRoutes);
 
