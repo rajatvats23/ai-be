@@ -10,12 +10,12 @@ const options = {
     },
     servers: [
       {
-        url: '/',
-        description: 'Current Server (Auto-detected)'
+        url: 'https://ai.thesynergyworks.com',
+        description: 'Production'
       },
       {
         url: 'http://localhost:5000',
-        description: 'Local Development'
+        description: 'Development'
       }
     ]
   },
