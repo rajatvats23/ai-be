@@ -55,36 +55,33 @@ export const dbStatus = async (req: Request, res: Response) => {
 
 export const n8nTest = async (req: Request, res: Response) => {
   try {
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
-    
-    if (!webhookUrl) {
+    const healthUrl = process.env.N8N_HEALTH_URL;
+
+    if (!healthUrl) {
       return res.status(500).json({
         status: 'error',
-        message: 'N8N_WEBHOOK_URL not configured'
+        message: 'N8N_HEALTH_URL not configured'
       });
     }
 
     const startTime = Date.now();
-    
-    // Simple ping test - don't trigger actual workflow
-    const response = await axios.get(webhookUrl.replace('/webhook-test/', '/webhook/'), {
+    const response = await axios.get(healthUrl, {
       timeout: 5000,
-      validateStatus: () => true // Accept any status
+      validateStatus: () => true
     });
-    
+
     const responseTime = Date.now() - startTime;
 
     res.json({
-      status: response.status < 500 ? 'reachable' : 'unreachable',
-      webhookUrl: webhookUrl.replace(/\/[^/]+$/, '/***'), // Hide endpoint
+      status: response.status === 200 ? 'healthy' : 'unhealthy',
       responseTime: `${responseTime}ms`,
-      statusCode: response.status
+      statusCode: response.status,
+      service: response.data?.service || 'unknown'
     });
   } catch (error: any) {
     res.status(500).json({
       status: 'error',
-      message: error.message,
-      webhookUrl: process.env.N8N_WEBHOOK_URL?.replace(/\/[^/]+$/, '/***')
+      message: error.message
     });
   }
 };
