@@ -2,11 +2,12 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { QuestionnaireData, Chapter } from '../types';
 
 export interface IStory extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   requestId: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   questionnaireData: QuestionnaireData;
   chapters?: Chapter[];
+  errorMessage?: string;
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
@@ -20,7 +21,7 @@ const ChapterSchema = new Schema({
 
 const StorySchema: Schema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: String, required: true },
     requestId: { type: String, required: true, unique: true },
     status: { 
       type: String, 
@@ -34,12 +35,12 @@ const StorySchema: Schema = new Schema(
       age: String,
       relationship: String,
       nickname: String,
-      mainCharacterImages: [String],
+      mainCharacterDescription: Schema.Types.Mixed,
+      storytellerDescription: Schema.Types.Mixed,
       storyteller: String,
       storytellerNames: String,
       storytellerRelationship: String,
       characterDescription: String,
-      storytellerImages: [String],
       backgroundInfo: String,
       hobbies: String,
       specialQualities: String,
@@ -50,6 +51,7 @@ const StorySchema: Schema = new Schema(
       additionalInfo: String
     },
     chapters: [ChapterSchema],
+    errorMessage: String,
     completedAt: Date
   },
   { timestamps: true }
