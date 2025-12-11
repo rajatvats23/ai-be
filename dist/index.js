@@ -17,14 +17,13 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 const httpServer = (0, http_1.createServer)(app);
 const PORT = process.env.PORT || 5000;
-app.use((0, cors_1.default)({ origin: process.env.FRONTEND_URL }));
+app.use((0, cors_1.default)({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+// Routes
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));
 app.use('/api/health', health_routes_1.default);
-app.use('/api/story', story_routes_1.default);
-app.use('/api/story', story_routes_1.default);
-app.use('/api/story', story_routes_1.default);
+app.use('/api/story', story_routes_1.default); // Only once!
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
@@ -33,9 +32,10 @@ const startServer = async () => {
         await (0, database_1.connectDB)();
         (0, socket_1.initSocket)(httpServer);
         httpServer.listen(PORT, () => {
-            console.log(`🚀 Server on port ${PORT}`);
-            console.log(`📡 Socket.io initialized`); // Add this line
-            console.log(`🌐 CORS: ${process.env.FRONTEND_URL}`);
+            console.log(`🚀 Server running on port ${PORT}`);
+            console.log(`📡 Socket.io initialized`);
+            console.log(`🌐 CORS: ${process.env.FRONTEND_URL || '*'}`);
+            console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
         });
     }
     catch (error) {

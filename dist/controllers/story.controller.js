@@ -6,61 +6,94 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserStories = exports.getStory = exports.createStory = void 0;
 const uuid_1 = require("uuid");
 const Story_model_1 = __importDefault(require("../models/Story.model"));
-const s3_service_1 = require("../services/s3.service");
 const n8n_service_1 = require("../services/n8n.service");
 const socket_service_1 = require("../services/socket.service");
 const createStory = async (req, res) => {
     try {
+        console.log('📥 Received story creation request');
+        console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
         const { userId, questionnaireData } = req.body;
-        const files = req.files;
-        if (!userId || !questionnaireData) {
+        if (!userId) {
+            console.log('❌ Missing userId');
             return res.status(400).json({
                 success: false,
-                message: 'Missing required fields'
+                message: 'Missing userId'
+            });
+        }
+        if (!questionnaireData) {
+            console.log('❌ Missing questionnaireData');
+            return res.status(400).json({
+                success: false,
+                message: 'Missing questionnaireData'
+            });
+        }
+        console.log('✅ UserId:', userId);
+        console.log('✅ QuestionnaireData keys:', Object.keys(questionnaireData));
+        // Validate descriptions exist
+        if (!questionnaireData.mainCharacterDescription) {
+            console.log('❌ Missing mainCharacterDescription');
+            return res.status(400).json({
+                success: false,
+                message: 'Main character description required'
+            });
+        }
+        if (!questionnaireData.storytellerDescription) {
+            console.log('❌ Missing storytellerDescription');
+            return res.status(400).json({
+                success: false,
+                message: 'Storyteller description required'
             });
         }
         const requestId = (0, uuid_1.v4)();
-        console.log(`📝 Creating story: ${requestId}`);
-        const mainCharacterImageUrls = await (0, s3_service_1.uploadCharacterImages)(files.mainCharacterImages || [], requestId, 'main');
-        const storytellerImageUrls = await (0, s3_service_1.uploadCharacterImages)(files.storytellerImages || [], requestId, 'storyteller');
-        console.log(`✅ Uploaded ${mainCharacterImageUrls.length + storytellerImageUrls.length} images`);
+        console.log(`📝 Creating story with requestId: ${requestId}`);
+        // Save to database
         const story = new Story_model_1.default({
             userId,
             requestId,
             status: 'processing',
-            questionnaireData: {
-                ...JSON.parse(questionnaireData),
-                mainCharacterImages: mainCharacterImageUrls,
-                storytellerImages: storytellerImageUrls
-            }
+            questionnaireData
         });
+        console.log('💾 Saving to database...');
         await story.save();
+        console.log('✅ Saved to database');
+        // Respond immediately
+        console.log('📤 Sending immediate response to client');
         res.json({
             success: true,
             requestId,
             message: 'Story generation started',
             status: 'processing'
         });
+        // Call n8n asynchronously
+        console.log('🚀 Starting n8n workflow call (async)');
         (0, n8n_service_1.callN8nWorkflow)({
             requestId,
-            ...JSON.parse(questionnaireData),
-            mainCharacterImages: mainCharacterImageUrls,
-            storytellerImages: storytellerImageUrls
+            ...questionnaireData
         })
             .then(async (n8nResponse) => {
+            console.log(`✅ Story complete: ${requestId}`);
+            console.log('📦 n8n Response:', JSON.stringify(n8nResponse, null, 2));
             story.status = 'completed';
             story.chapters = n8nResponse.chapters;
             story.completedAt = new Date();
             await story.save();
+            console.log('💾 Updated database with chapters');
+            console.log('📤 Emitting story-complete event to user:', userId);
             (0, socket_service_1.emitStoryComplete)(userId, requestId, n8nResponse.chapters);
         })
             .catch(async (error) => {
+            console.error(`❌ Story generation failed: ${requestId}`);
+            console.error('❌ Error:', error);
             story.status = 'failed';
+            story.errorMessage = error.message;
             await story.save();
+            console.log('📤 Emitting story-failed event to user:', userId);
             (0, socket_service_1.emitStoryFailed)(userId, requestId, error.message);
         });
     }
     catch (error) {
+        console.error('❌ Create story error:', error);
+        console.error('❌ Stack trace:', error.stack);
         res.status(500).json({
             success: false,
             message: 'Failed to create story',
@@ -85,8 +118,10 @@ const getStory = async (req, res) => {
                 requestId: story.requestId,
                 status: story.status,
                 chapters: story.chapters,
+                questionnaireData: story.questionnaireData,
                 createdAt: story.createdAt,
-                completedAt: story.completedAt
+                completedAt: story.completedAt,
+                errorMessage: story.errorMessage
             }
         });
     }
@@ -104,8 +139,17 @@ const getUserStories = async (req, res) => {
         const { userId } = req.params;
         const stories = await Story_model_1.default.find({ userId })
             .sort({ createdAt: -1 })
-            .select('requestId status createdAt completedAt');
-        res.json({ success: true, stories });
+            .select('requestId status createdAt completedAt questionnaireData.name');
+        res.json({
+            success: true,
+            stories: stories.map(s => ({
+                requestId: s.requestId,
+                status: s.status,
+                characterName: s.questionnaireData?.name || 'Unknown',
+                createdAt: s.createdAt,
+                completedAt: s.completedAt
+            }))
+        });
     }
     catch (error) {
         res.status(500).json({

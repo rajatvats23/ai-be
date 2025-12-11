@@ -40,7 +40,7 @@ const ChapterSchema = new mongoose_1.Schema({
     imageUrl: { type: String, required: true }
 }, { _id: false });
 const StorySchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: String, required: true },
     requestId: { type: String, required: true, unique: true },
     status: {
         type: String,
@@ -54,12 +54,12 @@ const StorySchema = new mongoose_1.Schema({
         age: String,
         relationship: String,
         nickname: String,
-        mainCharacterImages: [String],
+        mainCharacterDescription: mongoose_1.Schema.Types.Mixed,
+        storytellerDescription: mongoose_1.Schema.Types.Mixed,
         storyteller: String,
         storytellerNames: String,
         storytellerRelationship: String,
         characterDescription: String,
-        storytellerImages: [String],
         backgroundInfo: String,
         hobbies: String,
         specialQualities: String,
@@ -70,6 +70,7 @@ const StorySchema = new mongoose_1.Schema({
         additionalInfo: String
     },
     chapters: [ChapterSchema],
+    errorMessage: String,
     completedAt: Date
 }, { timestamps: true });
 exports.default = mongoose_1.default.model('Story', StorySchema);
